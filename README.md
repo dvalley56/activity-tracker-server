@@ -4,7 +4,5 @@ This is a Node.js server that uses Socket.IO to handle real-time communication w
 # Usage
 To start the server, run the following command:
 
-'''
-npm install
-npm start
-'''
+    npm install
+    npm start
