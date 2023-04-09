@@ -1,6 +1,6 @@
 const express = require("express");
 const socketIo = require("socket.io");
-const tf = require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs");
 
 const app = express();
 
@@ -13,8 +13,9 @@ let logs = [];
 
 //laad model
 // const MODEL_PATH  = "http://localhost:3567/model/model.json";
-const MODEL_PATH  = "file://model/model.json";
+const MODEL_PATH  = "https://raw.githubusercontent.com/dvalley56/nodemcu-server/main/model/model.json";
 const class_map_inv = ['idle', 'walking', 'running']
+
 
 let model;
 
