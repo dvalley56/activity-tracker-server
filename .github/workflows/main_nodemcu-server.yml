@@ -51,7 +51,7 @@ jobs:
       # after unzip, delete the zip file
         run: |
           unzip release.zip
-          rm release.zip 
+          rm release.zip, .gitignore, .git, /data, .github 
 
       - name: Print working directory and its contents and size
         run: |
