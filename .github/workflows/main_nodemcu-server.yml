@@ -26,7 +26,7 @@ jobs:
           npm install --omit=dev
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip . -x .git\*,.github\*,data\*
+        run: zip -r release.zip . -x '*.git*' 
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
@@ -58,6 +58,7 @@ jobs:
           ls -la
           du -sh
           rm -rf release.zip .git .github data
+          du -sh
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
