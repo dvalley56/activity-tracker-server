@@ -21,13 +21,12 @@ jobs:
         with:
           node-version: '16.x'
 
-      # - name: npm install, build, and test
-      #   run: |
-      #     npm install
+      - name: npm install, build, and test
+        run: |
+          npm clean-install --omit=dev
 
       - name: Zip artifact for deployment
-        # exclude .git folder from zip file
-        run: zip -r release.zip . -x .git\*
+        run: zip -r release.zip . -x .git\*,.github\*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
@@ -49,10 +48,7 @@ jobs:
           name: node-app
            
       - name: unzip artifact for deployment
-        run: unzip release.zip
-
-      - name: npm install production dependencies
-        run: npm install --production        
+        run: unzip release.zip    
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
