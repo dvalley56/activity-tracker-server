@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
       } - Temperature out of range}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("tempOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Temperature out of range}`);
+    socket.broadcast.emit("tempOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Temperature out of range`);
   });
 
   socket.on("humidityOutOfRange", (data) => {
@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
       } - Humidity out of range}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("humidityOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Humidity out of range}`);
+    socket.broadcast.emit("humidityOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Humidity out of range`);
   });
 
   socket.on("fall", () => {
@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
       } - Fall detected}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("fall", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Fall detected}`);
+    socket.broadcast.emit("fall", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Fall detected`);
   });
 
   socket.on("disconnect", () => {
