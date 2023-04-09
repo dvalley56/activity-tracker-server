@@ -50,14 +50,14 @@ jobs:
       - name: unzip artifact for deployment
       # after unzip, delete the zip file
         run: |
-          unzip release.zip
-          rm release.zip, .gitignore, .git, /data, .github 
+          unzip release.zip 
 
       - name: Print working directory and its contents and size
         run: |
           pwd
           ls -la
           du -sh
+          rm -rf release.zip .git .github data
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
