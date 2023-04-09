@@ -26,7 +26,7 @@ jobs:
           npm install --omit=dev
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip . -x .git\*,.github\*
+        run: zip -r release.zip . -x .git\*,.github\*,data\*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
@@ -48,7 +48,10 @@ jobs:
           name: node-app
            
       - name: unzip artifact for deployment
-        run: unzip release.zip
+      # after unzip, delete the zip file
+        run: |
+          unzip release.zip
+          rm release.zip 
 
       - name: Print working directory and its contents and size
         run: |
