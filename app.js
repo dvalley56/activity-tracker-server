@@ -1,7 +1,7 @@
 const express = require("express");
 const socketIo = require("socket.io");
 const tf = require("@tensorflow/tfjs");
-
+const connection = require("./database/connection");
 const app = express();
 
 const server = app.listen(8080, () => {
@@ -38,7 +38,6 @@ const predictActivity = (data) => {
 }
 
 app.get("/", (req, res) => {
-
   res.send(
     ` <h1>IoT Server</h1>
     <h2>Logs</h2>
@@ -47,6 +46,30 @@ app.get("/", (req, res) => {
     </ul>
     `
   );
+});
+
+app.get("/data", async (req, res) => {
+  try {
+    const { daterange, activity_status } = req.query;
+    let query = "SELECT * FROM `data`";
+    let params = [];
+  
+    if (daterange) {
+      query += " WHERE `timestamp` BETWEEN ? AND ?";
+      params.push(daterange.split(","));
+    }
+  
+    if (activity_status) {
+      query += " WHERE `activity_status` = ?";
+      params.push(activity_status);
+    }
+  
+    const data = await connection.execute(query, params);
+    res.status(200).json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 io.on("connection", (socket) => {
@@ -69,6 +92,22 @@ io.on("connection", (socket) => {
     } else {
       data["activity_status"] = "unknown";
     }
+
+    connection.execute(
+      "INSERT INTO `data` (`acceleration_magnitude`, `acceleration_x`, `acceleration_y`, `acceleration_z`, `humidity`, `is_fall_detected`, `activity_status`, `temperature`, `type`, `timestamp`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        data.acceleration_magnitude,
+        data.acceleration_x,
+        data.acceleration_y,
+        data.acceleration_z,
+        data.humidity,
+        data.is_fall_detected,
+        data.activity_status,
+        data.temperature,
+        data.type,
+        data.timestamp,
+      ]
+    );
      
     socket.broadcast.emit("data", data);
   });
