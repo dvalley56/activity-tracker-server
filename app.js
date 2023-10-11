@@ -1,8 +1,13 @@
 const express = require("express");
 const socketIo = require("socket.io");
 const tf = require("@tensorflow/tfjs");
+const cors = require("cors");
+
 const connection = require("./database/connection");
+
 const app = express();
+
+app.use(cors());
 
 const server = app.listen(8080, () => {
   console.log("listening on *:8080");
