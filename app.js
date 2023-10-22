@@ -18,7 +18,7 @@ let logs = [];
 
 //laad model
 // const MODEL_PATH  = "http://localhost:3567/model/model.json";
-const MODEL_PATH  = "https://raw.githubusercontent.com/dvalley56/nodemcu-server/main/model/model.json";
+const MODEL_PATH = "https://raw.githubusercontent.com/dvalley56/nodemcu-server/main/model/model.json";
 const class_map_inv = ['idle', 'walking', 'running']
 
 
@@ -38,7 +38,7 @@ const predictActivity = (data) => {
 
   // Make the prediction using the loaded model
   const prediction = model.predict(preprocessedData);
-  const activityStatus = tf.argMax(prediction, axis=1).dataSync()[0];
+  const activityStatus = tf.argMax(prediction, axis = 1).dataSync()[0];
   return class_map_inv[activityStatus];
 }
 
@@ -55,32 +55,69 @@ app.get("/", (req, res) => {
 
 app.get("/data", async (req, res) => {
   try {
-    const { daterange, activity_status } = req.query;
-    let query = "SELECT * FROM `data`";
+    let { startDate, endDate, activity_status } = req.query;
+    let query = "";
     let params = [];
-  
-    if (daterange) {
-      query += " WHERE `timestamp` BETWEEN ? AND ?";
-      params.push(daterange.split(","));
+
+    if (!startDate && !endDate) {
+      // get min timestamp from db
+      query = "SELECT MIN(timestamp) AS min_timestamp FROM `data`";
+      const data = await connection.execute(query);
+      startDate = data[0].min_timestamp;
+
+      // select max timestamp from db
+      query = "SELECT MAX(timestamp) AS max_timestamp FROM `data`";
+      const data2 = await connection.execute(query);
+      endDate = data2[0].max_timestamp;
     }
-  
+
+    startDate = new Date(startDate);
+    endDate = new Date(endDate);
+
+    query =
+      "WITH RECURSIVE DateRange AS ( " +
+      "SELECT TIMESTAMP(?) AS dt " +
+      "UNION ALL " +
+      "SELECT TIMESTAMPADD(MINUTE, 1, dt) " +
+      "FROM DateRange " +
+      "WHERE dt < ? " +
+      ") " +
+      "SELECT DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') AS rounded_dt," +
+      "AVG(d.acceleration_magnitude) AS acceleration_magnitude," +
+      "AVG(d.acceleration_x) AS acceleration_x," +
+      "AVG(d.acceleration_y) AS acceleration_y," +
+      "AVG(d.acceleration_z) AS acceleration_z," +
+      "AVG(d.humidity) AS humidity," +
+      "AVG(d.temperature) AS temperature," +
+      (activity_status ? "? AS activity_status, " : "") +
+    "DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') AS timestamp " +
+      "FROM DateRange dr " +
+      "LEFT JOIN data d ON DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') = DATE_FORMAT(d.timestamp, '%Y-%m-%d %H:%i:00') " +
+      (activity_status ? "AND activity_status = ?" : "") +
+      "GROUP BY rounded_dt " +
+      "ORDER BY rounded_dt DESC "
+      ;
+    params.push(startDate, endDate);
     if (activity_status) {
-      query += " WHERE `activity_status` = ?";
+      params.push(activity_status);
       params.push(activity_status);
     }
-  
+    await connection.execute('SET @@cte_max_recursion_depth = 5000;');
+
+    console.log("params", params);
+
     const data = await connection.execute(query, params);
     res.status(200).json(data);
-
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
 });
 
+
 io.on("connection", (socket) => {
   logs.push(
-    `${new Date().toLocaleString()} - ${
-      socket.handshake.headers["user-agent"]
+    `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
     } - Connection established`
   );
 
@@ -113,47 +150,43 @@ io.on("connection", (socket) => {
         data.timestamp,
       ]
     );
-     
+
     socket.broadcast.emit("data", data);
   });
 
   socket.on("tempOutOfRange", (data) => {
     // send alert or perform other operations
     logs.push(
-      `${new Date().toLocaleString()} - ${
-        socket.handshake.headers["user-agent"]
+      `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Temperature out of range}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("tempOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Temperature out of range`);
+    socket.broadcast.emit("tempOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Temperature out of range`);
   });
 
   socket.on("humidityOutOfRange", (data) => {
     // send alert or perform other operations
     logs.push(
-      `${new Date().toLocaleString()} - ${
-        socket.handshake.headers["user-agent"]
+      `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Humidity out of range}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("humidityOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Humidity out of range`);
+    socket.broadcast.emit("humidityOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Humidity out of range`);
   });
 
   socket.on("fall", () => {
     // send alert or perform other operations
     logs.push(
-      `${new Date().toLocaleString()} - ${
-        socket.handshake.headers["user-agent"]
+      `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Fall detected}`
     );
     // emit data to all connected clients except the NodeMCU
-    socket.broadcast.emit("fall", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"] } - Fall detected`);
+    socket.broadcast.emit("fall", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Fall detected`);
   });
 
   socket.on("disconnect", () => {
     logs.push(
-      `${new Date().toLocaleString()} - ${
-        socket.handshake.headers["user-agent"]
+      `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Connection closed}`
     );
   });
