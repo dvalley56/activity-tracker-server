@@ -82,7 +82,7 @@ app.get("/data", async (req, res) => {
       "FROM DateRange " +
       "WHERE dt < ? " +
       ") " +
-      "SELECT DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') AS rounded_dt," +
+      "SELECT DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') AS rounded_dt," +
       "AVG(d.acceleration_magnitude) AS acceleration_magnitude," +
       "AVG(d.acceleration_x) AS acceleration_x," +
       "AVG(d.acceleration_y) AS acceleration_y," +
@@ -90,9 +90,9 @@ app.get("/data", async (req, res) => {
       "AVG(d.humidity) AS humidity," +
       "AVG(d.temperature) AS temperature," +
       (activity_status ? "? AS activity_status, " : "") +
-    "DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') AS timestamp " +
+    "DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') AS timestamp " +
       "FROM DateRange dr " +
-      "LEFT JOIN data d ON DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00') = DATE_FORMAT(d.timestamp, '%Y-%m-%d %H:%i:00') " +
+      "LEFT JOIN data d ON DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') = DATE_FORMAT(d.timestamp, '%Y-%m-%d %H:%i:00Z') " +
       (activity_status ? "AND activity_status = ?" : "") +
       "GROUP BY rounded_dt " +
       "ORDER BY rounded_dt DESC "
