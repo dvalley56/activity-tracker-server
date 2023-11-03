@@ -90,7 +90,7 @@ app.get("/data", async (req, res) => {
       "AVG(d.humidity) AS humidity," +
       "AVG(d.temperature) AS temperature," +
       (activity_status ? "? AS activity_status, " : "") +
-    "DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') AS timestamp " +
+      "DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') AS timestamp " +
       "FROM DateRange dr " +
       "LEFT JOIN data d ON DATE_FORMAT(dr.dt, '%Y-%m-%d %H:%i:00Z') = DATE_FORMAT(d.timestamp, '%Y-%m-%d %H:%i:00Z') " +
       (activity_status ? "AND activity_status = ?" : "") +
@@ -114,6 +114,27 @@ app.get("/data", async (req, res) => {
   }
 });
 
+app.get("/stats", async (req, res) => {
+
+  try {
+
+    let totalRecords = await connection.execute("SELECT COUNT(*) AS total_records FROM `data`");
+    totalRecords = totalRecords[0].total_records;
+
+    let avgTemp = await connection.execute("SELECT AVG(temperature) AS avg_temp FROM `data`");
+    avgTemp = avgTemp[0].avg_temp;
+
+    let avgHumidity = await connection.execute("SELECT AVG(humidity) AS avg_humidity FROM `data`");
+    avgHumidity = avgHumidity[0].avg_humidity;
+
+    res.status(200).json({ totalRecords, avgTemp, avgHumidity });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+
+});
 
 io.on("connection", (socket) => {
   logs.push(
