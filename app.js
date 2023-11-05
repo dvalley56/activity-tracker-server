@@ -156,52 +156,47 @@ io.on("connection", (socket) => {
       data["activity_status"] = "unknown";
     }
 
-    connection.execute(
-      "INSERT INTO `data` (`acceleration_magnitude`, `acceleration_x`, `acceleration_y`, `acceleration_z`, `humidity`, `is_fall_detected`, `activity_status`, `temperature`, `type`, `timestamp`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        data.acceleration_magnitude,
-        data.acceleration_x,
-        data.acceleration_y,
-        data.acceleration_z,
-        data.humidity,
-        data.is_fall_detected,
-        data.activity_status,
-        data.temperature,
-        data.type,
-        data.timestamp,
-      ]
-    );
+    // uncomment to save data to database
+    // connection.execute(
+    //   "INSERT INTO `data` (`acceleration_magnitude`, `acceleration_x`, `acceleration_y`, `acceleration_z`, `humidity`, `is_fall_detected`, `activity_status`, `temperature`, `type`, `timestamp`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    //   [
+    //     data.acceleration_magnitude,
+    //     data.acceleration_x,
+    //     data.acceleration_y,
+    //     data.acceleration_z,
+    //     data.humidity,
+    //     data.is_fall_detected,
+    //     data.activity_status,
+    //     data.temperature,
+    //     data.type,
+    //     data.timestamp,
+    //   ]
+    // );
 
     socket.broadcast.emit("data", data);
   });
 
   socket.on("tempOutOfRange", (data) => {
-    // send alert or perform other operations
     logs.push(
       `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Temperature out of range}`
     );
-    // emit data to all connected clients except the NodeMCU
     socket.broadcast.emit("tempOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Temperature out of range`);
   });
 
   socket.on("humidityOutOfRange", (data) => {
-    // send alert or perform other operations
     logs.push(
       `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Humidity out of range}`
     );
-    // emit data to all connected clients except the NodeMCU
     socket.broadcast.emit("humidityOutOfRange", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Humidity out of range`);
   });
 
   socket.on("fall", () => {
-    // send alert or perform other operations
     logs.push(
       `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]
       } - Fall detected}`
     );
-    // emit data to all connected clients except the NodeMCU
     socket.broadcast.emit("fall", `${new Date().toLocaleString()} - ${socket.handshake.headers["user-agent"]} - Fall detected`);
   });
 
