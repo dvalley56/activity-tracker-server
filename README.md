@@ -19,8 +19,7 @@ DB_PASSWORD=
 DB_DATABASE=
 DB_PORT=
 ```
-
-    
+ 
 ### From where data is collected ?
 We have built our own activity monitering device using nodemcu, axdl345, dht11 that is connected to the using a web socket. Every second it sends a reading to the web socket channel. From there it is passed to a CNN [model](https://colab.research.google.com/drive/13yukbs1QBgEYILthYoCK7bL7W8znS_BX?usp=sharing) that analyses the reading and gives the output as idle, walking or running (classification model).
 
